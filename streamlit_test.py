@@ -12,8 +12,8 @@ st.title('Hello')
 def show_table_from_mysql():
     # 连接数据库
     connection = pymysql.connect(
-        host='localhost',
-        user='root',
+        host='192.168.21.32',
+        user='remote_user',
         password='123456',
         database='mydatabase',  # 替换为实际的数据库名称
         charset='utf8mb4'
@@ -67,8 +67,8 @@ if __name__ == "__main__":
 
 def create_summary_table():
     connection = pymysql.connect(
-        host='localhost',
-        user='root',
+        host='192.168.21.32',
+        user='remote_user',
         password='123456',
         database='mydatabase',
         charset='utf8mb4'
@@ -141,13 +141,12 @@ def extract_period(camp_name):
     return camp_name[start:end]
 def create_summary_table():
     connection = pymysql.connect(
-        host='localhost',
-        user='root',
+        host='192.168.21.32',
+        user='remote_user',
         password='123456',
         database='mydatabase',
         charset='utf8mb4'
     )
-
     try:
         with connection.cursor() as cursor:
             sql = "SELECT * FROM total_camp"
