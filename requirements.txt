@@ -2,3 +2,4 @@ pymysql
 pandas
 pyecharts
 streamlit
+sqlalchemy
