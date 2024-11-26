@@ -7,6 +7,8 @@ from pyecharts.components import Table
 import pyecharts.options as opts
 import streamlit as st
 
+# 设置网页信息
+st.set_page_config(page_title="非标数据看板", page_icon=":bar_chart:", layout="wide")
 st.title('Hello')
 
 def show_table_from_mysql():

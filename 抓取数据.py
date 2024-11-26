@@ -19,6 +19,9 @@ def connect_to_mysql():
     except Exception as e:
         return None
 
+
+#data=total_data
+#table_name='total_camp'
 def insert_data_to_mysql(data, table_name, key_columns, columns):
     connection = connect_to_mysql()
     cursor = connection.cursor()
@@ -46,6 +49,7 @@ def insert_data_to_mysql(data, table_name, key_columns, columns):
                     updated = True
             if updated:
                 update_data.append((existing_row, key_tuple))
+
         else:
             new_row = [row[col] for col in key_columns + columns]
             new_data.append(new_row)
@@ -63,6 +67,7 @@ def insert_data_to_mysql(data, table_name, key_columns, columns):
             where_clause = ' AND '.join([f"{col} = %s" for col in key_columns])
             sql = f"UPDATE {table_name} SET {set_clause} WHERE {where_clause}"
             cursor.execute(sql, existing_row + list(key_tuple))
+            connection.commit()
 
     cursor.close()
     connection.close()
@@ -127,8 +132,10 @@ def get_day_data_by_token(token):
 def get_camp_data_by_token(token):
     xunlianying_id_sql = pd.read_sql('xunlianying_id', con=engine)
     xunlianying_id_sql_sorted = xunlianying_id_sql.sort_values(by='xunlianying', ascending=False)
-    for id in xunlianying_id_sql_sorted['xe_id'].head(10):
+    for id in xunlianying_id_sql_sorted['xe_id'].head(5):
+        #print(id)
         xunlianying = xunlianying_id_sql[xunlianying_id_sql['xe_id'] == id]['xunlianying'].iloc[0]
+        #print(xunlianying)
         url = f"https://api-h5.tangdou.com/course/board/export?token={token}&xe_id={id}&dump_type=camp&export=N&show_order_quantity=Y"
 
         max_retries = 5
@@ -160,6 +167,7 @@ def get_camp_data_by_token(token):
                                    '导学课到课数', '导学课到课率', '导学课完课数', '导学课完课率', '正价课转化数',
                                    '正价课转化率']
                         insert_data_to_mysql(total_data, 'total_camp', key_columns, columns)
+                        #total_data.to_csv(f'{xunlianying}_total.csv', index=False)
                     break
             except Exception as e:
                 print(f"Exception occurred in get_camp_data_by_token: {e}")
@@ -183,7 +191,7 @@ tokens = pd.DataFrame([
 
 for _, row in tokens.iterrows():
     token = row['token']
-    get_day_data_by_token(token)
+    print(token)
+    #get_day_data_by_token(token)
     get_camp_data_by_token(token)
-
 
