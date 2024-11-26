@@ -3,5 +3,4 @@ pandas
 pyecharts
 streamlit
 sqlalchemy
-mysqlclient
-MySQLdb
+mysql-connector-python
