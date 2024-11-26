@@ -6,6 +6,8 @@ from pyecharts.charts import Grid
 from pyecharts.components import Table
 import pyecharts.options as opts
 import streamlit as st
+import mysql.connector
+
 conn = st.connection('mysql',type='sql')
 
 # 设置网页信息
