@@ -7,7 +7,7 @@ from pyecharts.components import Table
 import pyecharts.options as opts
 import streamlit as st
 import mysql.connector
-import MySQLdb
+#import MySQLdb
 
 #conn = st.connection('mysql',type='sql')
 
