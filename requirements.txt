@@ -4,5 +4,5 @@ pyecharts
 streamlit
 sqlalchemy
 mysql-connector-python
-mysqlclient==2.2.6
+
 SQLAlchemy
