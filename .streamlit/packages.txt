@@ -1,3 +1,9 @@
 python3-dev
 default-libmysqlclient-dev
 build-essential
+ffmpeg
+gifsicle
+build-essential
+gdal-bin
+libgdal-dev
+pkg-config

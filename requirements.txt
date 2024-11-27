@@ -3,6 +3,6 @@ pandas
 pyecharts
 streamlit
 sqlalchemy
+mysqlclient==2.2.6
 mysql-connector-python
-
 SQLAlchemy
