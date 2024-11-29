@@ -6,12 +6,16 @@ from pyecharts.charts import Grid
 from pyecharts.components import Table
 import pyecharts.options as opts
 import streamlit as st
-import mysql.connector
-
+#conn = st.connection('mysql',type='sql')
 
 # 设置网页信息
 st.set_page_config(page_title="非标数据看板", page_icon=":bar_chart:", layout="wide")
-st.title('Hello')
+# 主页面
+st.title(":bar_chart: 非标数据看板")
+st.markdown("##")
+
+# 分隔符
+st.markdown("""---""")
 
 def show_table_from_mysql():
     # 连接数据库
@@ -50,6 +54,7 @@ def show_table_from_mysql():
     # 根据筛选条件过滤数据
     filtered_data = [row for row in table_data if row[1] == selected_channel]
     # 将数据转换为 DataFrame
+    df = pd.DataFrame(filtered_data, columns=columns)
 
     # 创建表格
     table = Table()
@@ -60,11 +65,20 @@ def show_table_from_mysql():
     # 将 pyecharts 图表转换为 HTML 字符串
     table_html = table.render_embed()
     # 修改 HTML 字符串设置字体大小
-    #table_html = table_html.replace('<table', '<table style="font-size: 12px;')
+    # table_html = table_html.replace('<table', '<table style="font-size: 12px;')
 
     # 在 Streamlit 中显示 HTML 并添加滚轮
-    st.components.v1.html(f'<div style="overflow-y: scroll; height: 600px;">{table_html}</div>',height=500,width=800)  # 您可以根据需要调整高度
-    #st.components.v1.html(table_html, height=600)
+    st.components.v1.html(f'<div style="overflow-y: scroll; height: 600px;">{table_html}</div>', height=500, width=900)  # 您可以根据需要调整高度
+
+    # 添加导出按钮
+    if st.button("导出当前表格"):
+        csv = df.to_csv(index=False)
+        st.download_button(
+            label="下载 CSV 文件",
+            data=csv,
+            file_name=f"{selected_channel}_table.csv",
+            mime="text/csv"
+        )
 
 if __name__ == "__main__":
     show_table_from_mysql()
@@ -96,7 +110,7 @@ def create_summary_table():
     # 创建新的数据框来填充数据
     new_df = pd.DataFrame(columns=new_columns)
 
-    metrics = ["有效例子数",'填写问卷率','单向好友数','导学课到课率','导学课完课率','正价课转化数','正价课转化率']  # 这里可以根据需要添加其他指标
+    metrics = ["有效例子数",'填写问卷数','填写问卷率','单向好友数','导学课到课数','导学课到课率','导学课完课数','导学课完课率','正价课转化数','正价课转化率']  # 这里可以根据需要添加其他指标
 
     for metric in metrics:
         metric_df = df
@@ -130,8 +144,15 @@ def create_summary_table():
     table_html = table.render_embed()
 
     # 在 Streamlit 中显示 HTML 并添加滚轮
-    st.components.v1.html(f'<div style="overflow-y: scroll; height: 600px;">{table_html}</div>',height=500,width=900)  # 您可以根据需要调整高度
-
+    st.components.v1.html(f'<div style="overflow-y: scroll; height: 600px;">{table_html}</div>',height=600,width=900)  # 您可以根据需要调整高度
+    # 添加导出按钮
+    csv = filtered_df.to_csv(index=False, encoding='utf-8-sig')
+    st.download_button(
+        label="导出当前表格",
+        data=csv,
+        file_name=f"{selected_metric}_summary.csv",
+        mime="text/csv",
+    )
 if __name__ == "__main__":
     create_summary_table()
 

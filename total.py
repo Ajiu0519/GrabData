@@ -103,7 +103,7 @@ grouped_df['填写问卷数'] = grouped_df['填写问卷数'].astype(int)
 grouped_df['单向好友数'] = grouped_df['单向好友数'].astype(int)
 grouped_df['导学课到课数'] = grouped_df['导学课到课数'].astype(int)
 grouped_df['导学课完课数'] = grouped_df['导学课完课数'].astype(int)
-grouped_df['正价课转化数'] = grouped_df['正价课转化数'].astype(int)
+grouped_df['正价课转化数'] = grouped_df['正价课转化数'].astype(float)
 
 # 计算比率，将结果转换为整数形式并以百分比显示
 grouped_df['填写问卷率'] = ((grouped_df['填写问卷数'] / grouped_df['有效例子数']) * 100).round(2).map(lambda x: f"{x:.2f}%")

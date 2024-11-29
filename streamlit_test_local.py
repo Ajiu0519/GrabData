@@ -10,7 +10,12 @@ import streamlit as st
 
 # 设置网页信息
 st.set_page_config(page_title="非标数据看板", page_icon=":bar_chart:", layout="wide")
-st.title('Hello')
+# 主页面
+st.title(":bar_chart: 非标数据看板")
+st.markdown("##")
+
+# 分隔符
+st.markdown("""---""")
 
 def show_table_from_mysql():
     # 连接数据库
@@ -42,9 +47,11 @@ def show_table_from_mysql():
 
     # 获取所有的渠道选项
     channels = list(set([row[1] for row in table_data]))  # 假设渠道在第二列
-
+    # 添加子标题
+    st.subheader('渠道-期次 汇总表')
     # 添加筛选器
     selected_channel = st.selectbox("选择渠道", channels)
+
 
     # 根据筛选条件过滤数据
     filtered_data = [row for row in table_data if row[1] == selected_channel]
@@ -105,7 +112,7 @@ def create_summary_table():
     # 创建新的数据框来填充数据
     new_df = pd.DataFrame(columns=new_columns)
 
-    metrics = ["有效例子数",'填写问卷率','单向好友数','导学课到课率','导学课完课率','正价课转化数','正价课转化率']  # 这里可以根据需要添加其他指标
+    metrics = ["有效例子数",'填写问卷数','填写问卷率','单向好友数','导学课到课数','导学课到课率','导学课完课数','导学课完课率','正价课转化数','正价课转化率']  # 这里可以根据需要添加其他指标
 
     for metric in metrics:
         metric_df = df
@@ -140,7 +147,14 @@ def create_summary_table():
 
     # 在 Streamlit 中显示 HTML 并添加滚轮
     st.components.v1.html(f'<div style="overflow-y: scroll; height: 600px;">{table_html}</div>',height=600,width=900)  # 您可以根据需要调整高度
-
+    # 添加导出按钮
+    csv = filtered_df.to_csv(index=False, encoding='utf-8-sig')
+    st.download_button(
+        label="导出当前表格",
+        data=csv,
+        file_name=f"{selected_metric}_summary.csv",
+        mime="text/csv",
+    )
 if __name__ == "__main__":
     create_summary_table()
 
