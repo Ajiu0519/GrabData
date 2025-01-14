@@ -94,6 +94,8 @@ grouped_df = df.groupby(['期次', '渠道']).agg({
     '单向好友数': 'sum',
     '导学课到课数': 'sum',
     '导学课完课数': 'sum',
+    'D1到课数': 'sum',
+    'D1完课数': 'sum',
     '正价课转化数': 'sum'
 }).reset_index()
 # 确保相关列的数据类型为整数
@@ -103,17 +105,22 @@ grouped_df['填写问卷数'] = grouped_df['填写问卷数'].astype(int)
 grouped_df['单向好友数'] = grouped_df['单向好友数'].astype(int)
 grouped_df['导学课到课数'] = grouped_df['导学课到课数'].astype(int)
 grouped_df['导学课完课数'] = grouped_df['导学课完课数'].astype(int)
+grouped_df['D1到课数'] = grouped_df['D1到课数'].astype(int)
+grouped_df['D1完课数'] = grouped_df['D1完课数'].astype(int)
 grouped_df['正价课转化数'] = grouped_df['正价课转化数'].astype(float)
 
 # 计算比率，将结果转换为整数形式并以百分比显示
 grouped_df['填写问卷率'] = ((grouped_df['填写问卷数'] / grouped_df['有效例子数']) * 100).round(2).map(lambda x: f"{x:.2f}%")
 grouped_df['导学课到课率'] = ((grouped_df['导学课到课数'] / grouped_df['有效例子数']) * 100).round(2).map(lambda x: f"{x:.2f}%")
 grouped_df['导学课完课率'] = ((grouped_df['导学课完课数'] / grouped_df['有效例子数']) * 100).round(2).map(lambda x: f"{x:.2f}%")
+grouped_df['D1到课率'] = ((grouped_df['D1到课数'] / grouped_df['有效例子数']) * 100).round(2).map(lambda x: f"{x:.2f}%")
+grouped_df['D1完课率'] = ((grouped_df['D1完课数'] / grouped_df['有效例子数']) * 100).round(2).map(lambda x: f"{x:.2f}%")
 grouped_df['正价课转化率'] = ((grouped_df['正价课转化数'] / grouped_df['有效例子数']) * 100).round(2).map(lambda x: f"{x:.2f}%")
 
 # 显示结果
 print(grouped_df)
 key_columns = ['期次', '渠道']
-columns = ['支付成功例子数','有效例子数','填写问卷数','填写问卷率','单向好友数','导学课到课数','导学课到课率','导学课完课数','导学课完课率','正价课转化数','正价课转化率']
+columns = ['支付成功例子数','有效例子数','填写问卷数','填写问卷率','单向好友数','导学课到课数','导学课到课率','导学课完课数','导学课完课率',
+           'D1到课数','D1到课率','D1完课数','D1完课率','正价课转化数','正价课转化率']
 insert_data_to_mysql(grouped_df, 'camp_period_channel_summary', key_columns, columns)
 

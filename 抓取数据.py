@@ -135,7 +135,7 @@ def get_camp_data_by_token(token):
     channel_name = tokens.loc[tokens['token'] == token, 'channel_name']
     xunlianying_id_sql = pd.read_sql('xunlianying_id', con=engine)
     xunlianying_id_sql_sorted = xunlianying_id_sql.sort_values(by='xunlianying', ascending=False)
-    for id in xunlianying_id_sql_sorted['xe_id'].head(6):
+    for id in xunlianying_id_sql_sorted['xe_id'].head(7):
         #print(id)
         xunlianying = xunlianying_id_sql[xunlianying_id_sql['xe_id'] == id]['xunlianying'].iloc[0]
         #print(xunlianying)
@@ -146,7 +146,7 @@ def get_camp_data_by_token(token):
 
         while retry_count < max_retries:
             try:
-                response = requests.get(url)
+                response = requests.get(url, timeout=120)
                 if response.status_code == 200:
                     data = response.json()
                     if 'total' in data and data['total']:
@@ -163,18 +163,23 @@ def get_camp_data_by_token(token):
                             '导学课到课率': item['D0_arrive_rate'],
                             '导学课完课数': item['D0_finish_num'],
                             '导学课完课率': item['D0_finish_rate'],
+                            'D1到课数': item['D1_arrive_num'],
+                            'D1到课率': item['D1_arrive_rate'],
+                            'D1完课数': item['D1_finish_num'],
+                            'D1完课率': item['D1_finish_rate'],
                             '正价课转化数': item['xiaoe_order_num']
                         } for item in data['total']])
                         total_data['正价课转化率'] = ((total_data['正价课转化数'] / total_data['有效例子数']) * 100).map("{:.2f}%".format)
                         key_columns = ['训练营', 'h5id']
                         columns = ['支付成功例子数', '有效例子数', '填写问卷数', '填写问卷率', '单向好友数',
-                                   '导学课到课数', '导学课到课率', '导学课完课数', '导学课完课率', '正价课转化数',
-                                   '正价课转化率','渠道']
+                                   '导学课到课数', '导学课到课率', '导学课完课数', '导学课完课率', 'D1到课数', 'D1到课率', 'D1完课数', 'D1完课率',
+                                   '正价课转化数','正价课转化率','渠道']
                         insert_data_to_mysql(total_data, 'total_camp', key_columns, columns)
                         #total_data.to_csv(f'{xunlianying}_total.csv', index=False)
                     break
                 else:
                     print(f"Failed to fetch data for {xunlianying}, retrying... ")
+                    print(response.status_code)
                     break
             except Exception as e:
                 print(f"Exception occurred in get_camp_data_by_token: {e}")
@@ -185,17 +190,18 @@ def get_camp_data_by_token(token):
             time.sleep(5)
 
 tokens = pd.DataFrame([
-    {'channel_name': '花螺直播', 'token': '7d7bd1d033618f35e9b4cb44693ef3e2'},
-    {'channel_name': '蚂蚁星球', 'token': 'c3df521c2de3a9c022d85b032bc79329my'},
+    #{'channel_name': '花螺直播', 'token': '7d7bd1d033618f35e9b4cb44693ef3e2'},
+    #{'channel_name': '蚂蚁星球', 'token': 'c3df521c2de3a9c022d85b032bc79329my'},
     {'channel_name': '江苏数赢', 'token': 'a635edcd605e3bbb6600bbffa897bf7b'},
     {'channel_name': '星视点', 'token': '538FD95F068B9CB986307F81652DD931xqd'},
-    {'channel_name': '优酷', 'token': 'A219E14D437D3DE4BA59EB2DBD04003Byk'},
-    {'channel_name': '爱奇艺', 'token': '7757442A5AF90547CD3FC9D780D2E38Fiqy'},
-    {'channel_name': '元创', 'token': '95301669671E4735602D7A46141A1284yc'},
-    {'channel_name': '盛大', 'token': 'A70C8B2E96998821D2C7A61B563E15E0sd'},
-    {'channel_name': '速达', 'token': 'C588758E4ED85632297A32690FCF330Asd'},
-    {'channel_name': '琦易', 'token': 'D2E15DB4FC9D7ECA15FC4D45365A0078qy'},
-    {'channel_name': '前海屿时', 'token': '40DD43428EBBB4B56E6A465438D57C87qhys'}
+    #{'channel_name': '优酷', 'token': 'A219E14D437D3DE4BA59EB2DBD04003Byk'},
+    #{'channel_name': '爱奇艺', 'token': '7757442A5AF90547CD3FC9D780D2E38Fiqy'},
+    #{'channel_name': '元创', 'token': '95301669671E4735602D7A46141A1284yc'},
+    #{'channel_name': '盛大', 'token': 'A70C8B2E96998821D2C7A61B563E15E0sd'},
+    #{'channel_name': '速达', 'token': 'C588758E4ED85632297A32690FCF330Asd'},
+    #{'channel_name': '琦易', 'token': 'D2E15DB4FC9D7ECA15FC4D45365A0078qy'},
+    #{'channel_name': '前海屿时', 'token': '40DD43428EBBB4B56E6A465438D57C87qhys'},
+    #{'channel_name': '默认店铺', 'token': 'F76801BB6030F3DA32519FCA38178C06dp'},
 ])
 
 for _, row in tokens.iterrows():
@@ -203,40 +209,6 @@ for _, row in tokens.iterrows():
     print(token)
     #get_day_data_by_token(token)
     get_camp_data_by_token(token)
-'''
-def update_channel_column():
-    connection = connect_to_mysql()
-    if not connection:
-        return
 
-    try:
-        with connection.cursor() as cursor:
-            # 更新 total_day 表
-            update_total_day_sql = """
-            UPDATE total_day
-            JOIN channel_h5id ON total_day.h5id = channel_h5id.h5id
-            SET total_day.渠道 = channel_h5id.channel_name;
-            """
-            cursor.execute(update_total_day_sql)
-
-            # 更新 total_camp 表
-            update_total_camp_sql = """
-            UPDATE total_camp
-            JOIN channel_h5id ON total_camp.h5id = channel_h5id.h5id
-            SET total_camp.渠道 = channel_h5id.channel_name;
-            """
-            cursor.execute(update_total_camp_sql)
-
-        connection.commit()
-        print("Channel column updated successfully.")
-    except Exception as e:
-        print(f"Error updating channel column: {e}")
-        connection.rollback()
-    finally:
-        connection.close()
-
-# 调用函数
-#update_channel_column() 先不调用，测试一下能否直接赋值
-'''
-
-#url=('https://api-h5.tangdou.com/course/board/export?token=7d7bd1d033618f35e9b4cb44693ef3e2&xe_id=p_6736ff0de4b0694c3c67f8f0&dump_type=camp&export=N&show_order_quantity=N')
+#url="https://api-h5.xiaotangketang.com/course/board/export?token=7d7bd1d033618f35e9b4cb44693ef3e2&xe_id=p_6736ff0de4b0694c3c67f8f0&dump_type=camp&export=N&show_order_quantity=Y"
+#url = 'https://api-h5.xiaotangketang.com/course/board/export?token=7d7bd1d033618f35e9b4cb44693ef3e2&date=2024-12-11&dump_type=day&export=N'

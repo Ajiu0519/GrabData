@@ -5,6 +5,9 @@ from pyecharts.options import ComponentTitleOpts
 from pyecharts.charts import Grid
 from pyecharts.components import Table
 import pyecharts.options as opts
+from pyecharts import options as opts
+from pyecharts.charts import Bar, Line
+from pyecharts.faker import Faker
 import streamlit as st
 #conn = st.connection('mysql',type='sql')
 
@@ -79,6 +82,31 @@ def show_table_from_mysql():
             file_name=f"{selected_channel}_table.csv",
             mime="text/csv"
         )
+    tab1, tab2 = st.tabs(["📈 图表", "🗃 数据"])
+    data = df[['期次','有效例子数','正价课转化率']].sort_values(by=['期次'])
+    tab1.subheader("一个带有图表的选项卡")
+    bar = (
+        Bar()
+        .add_xaxis(df['期次'])
+        .add_yaxis("有效例子数", df['有效例子数'])
+        .extend_axis(
+            yaxis=opts.AxisOpts(
+                axislabel_opts=opts.LabelOpts(formatter="{value} "), interval=5
+            )
+        )
+        .set_series_opts(label_opts=opts.LabelOpts(is_show=False))
+        .set_global_opts(
+            title_opts=opts.TitleOpts(title="Overlap-bar+line"),
+            yaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(formatter="{value} ")),
+        )
+    )
+    line = Line().add_xaxis(df['期次']).add_yaxis("有效例子数", df['正价课转化率'], yaxis_index=1)
+    bar.overlap(line)
+    bar_html = bar.render_embed()
+    st.components.v1.html(f'<div style="overflow-y: scroll; height: 600px;">{bar_html}</div>', height=600, width=900)  # 您可以根据需要调整高度
+
+    tab2.subheader("一个带有数据的选项卡")
+    tab2.write(data)
 
 if __name__ == "__main__":
     show_table_from_mysql()
@@ -153,6 +181,7 @@ def create_summary_table():
         file_name=f"{selected_metric}_summary.csv",
         mime="text/csv",
     )
+
 if __name__ == "__main__":
     create_summary_table()
 

@@ -6,13 +6,16 @@ from pyecharts.charts import Grid
 from pyecharts.components import Table
 import pyecharts.options as opts
 import streamlit as st
+from pyecharts.charts import Bar, Line
+
+
 #conn = st.connection('mysql',type='sql')
 
 # 设置网页信息
 st.set_page_config(page_title="非标数据看板", page_icon=":bar_chart:", layout="wide")
 # 主页面
 st.title(":bar_chart: 非标数据看板")
-st.markdown("##")
+#st.markdown("##")
 
 # 分隔符
 st.markdown("""---""")
@@ -20,8 +23,8 @@ st.markdown("""---""")
 def show_table_from_mysql():
     # 连接数据库
     connection = pymysql.connect(
-        host='192.168.21.32',
-        user='remote_user',
+        host='localhost',
+        user='root',
         password='123456',
         database='mydatabase',  # 替换为实际的数据库名称
         charset='utf8mb4'
@@ -35,18 +38,24 @@ def show_table_from_mysql():
             results = cursor.fetchall()
 
             # 获取列名
-            columns = [column[0] for column in cursor.description]
+            all_columns = [column[0] for column in cursor.description]
+            # 定义要显示的列
+            display_columns = ["期次","渠道",'有效例子数', '填写问卷率','导学课到课率','导学课完课率','D1到课率','D1完课率','正价课转化数','正价课转化率']
+            # 找到要显示的列的索引
+            display_indices = [all_columns.index(col) for col in display_columns if col in all_columns]
 
     finally:
         connection.close()
 
     # 构建表格数据
-    table_data = [list(row) for row in results]
+    table_data = [[row[i] for i in display_indices] for row in results]
+
     # 对第一列进行降序排序
     table_data.sort(key=lambda x: x[0], reverse=True)
 
     # 获取所有的渠道选项
     channels = list(set([row[1] for row in table_data]))  # 假设渠道在第二列
+    channels = ['星视点', '江苏数赢', '优酷', '爱奇艺', '默认店铺']
     # 添加子标题
     st.subheader('渠道-期次 汇总表')
     # 添加筛选器
@@ -56,13 +65,15 @@ def show_table_from_mysql():
     # 根据筛选条件过滤数据
     filtered_data = [row for row in table_data if row[1] == selected_channel]
     # 将数据转换为 DataFrame
-    df = pd.DataFrame(filtered_data, columns=columns)
+
+
+    df = pd.DataFrame(filtered_data, columns=display_columns)
 
     # 创建表格
     table = Table()
 
     # 配置表格
-    table.add(columns, filtered_data)
+    table.add(display_columns, filtered_data)
 
     # 将 pyecharts 图表转换为 HTML 字符串
     table_html = table.render_embed()
@@ -70,25 +81,27 @@ def show_table_from_mysql():
     # table_html = table_html.replace('<table', '<table style="font-size: 12px;')
 
     # 在 Streamlit 中显示 HTML 并添加滚轮
-    st.components.v1.html(f'<div style="overflow-y: scroll; height: 600px;">{table_html}</div>', height=500, width=900)  # 您可以根据需要调整高度
+    st.components.v1.html(f'<div style="overflow-y: scroll; height: 600px;">{table_html}</div>', height=600, width=900)  # 您可以根据需要调整高度
 
     # 添加导出按钮
-    if st.button("导出当前表格"):
-        csv = df.to_csv(index=False)
-        st.download_button(
-            label="下载 CSV 文件",
-            data=csv,
-            file_name=f"{selected_channel}_table.csv",
-            mime="text/csv"
-        )
+    csv = df.to_csv(index=False,encoding='utf-8-sig')
+    st.download_button(
+        label="导出当前表格",
+        data=csv,
+        file_name=f"{selected_channel}_table.csv",
+        mime="text/csv"
+    )
+
 
 if __name__ == "__main__":
     show_table_from_mysql()
+# 分隔符
+st.markdown("""---""")
 
 def create_summary_table():
     connection = pymysql.connect(
-        host='192.168.21.32',
-        user='remote_user',
+        host='localhost',
+        user='root',
         password='123456',
         database='mydatabase',
         charset='utf8mb4'
@@ -104,15 +117,16 @@ def create_summary_table():
         connection.close()
 
     # 获取渠道列表
-    channels = df['渠道'].unique()
-
+    #channels = df['渠道'].unique()
+    channels = ['星视点', '江苏数赢']
     # 构建新的表头，包括"指标"、"期次"和各个渠道
     new_columns = ['指标', '期次'] + list(channels)
 
     # 创建新的数据框来填充数据
     new_df = pd.DataFrame(columns=new_columns)
 
-    metrics = ["有效例子数",'填写问卷数','填写问卷率','单向好友数','导学课到课数','导学课到课率','导学课完课数','导学课完课率','正价课转化数','正价课转化率']  # 这里可以根据需要添加其他指标
+    metrics = ["有效例子数",'填写问卷数','填写问卷率','单向好友数','导学课到课数','导学课到课率','导学课完课数',
+               '导学课完课率',"D1到课数","D1到课率","D1完课数","D1完课率",'正价课转化数','正价课转化率']  # 这里可以根据需要添加其他指标
 
     for metric in metrics:
         metric_df = df
@@ -155,9 +169,11 @@ def create_summary_table():
         file_name=f"{selected_metric}_summary.csv",
         mime="text/csv",
     )
+
 if __name__ == "__main__":
     create_summary_table()
-
+# 分隔符
+st.markdown("""---""")
 
 import pymysql
 import pandas as pd
@@ -168,8 +184,8 @@ def extract_period(camp_name):
     return camp_name[start:end]
 def create_summary_table():
     connection = pymysql.connect(
-        host='192.168.21.32',
-        user='remote_user',
+        host='localhost',
+        user='root',
         password='123456',
         database='mydatabase',
         charset='utf8mb4'
@@ -186,9 +202,9 @@ def create_summary_table():
             df['期次'] = df['训练营'].apply(extract_period)
     finally:
         connection.close()
-
+    channels = ['星视点', '江苏数赢']
     # 渠道筛选，添加唯一键 'channel_select'
-    selected_channel = st.sidebar.selectbox('选择渠道', df['渠道'].unique(), key='channel_select')
+    selected_channel = st.sidebar.selectbox('选择渠道', channels, key='channel_select')
 
     # 期次筛选（降序）
     available_periods = sorted(df['期次'].unique(), reverse=True)
@@ -209,6 +225,8 @@ def create_summary_table():
         '填写问卷数': 'sum',
         '导学课到课数': 'sum',
         '导学课完课数': 'sum',
+        'D1到课数': 'sum',
+        'D1完课数': 'sum',
         '正价课转化数': 'sum'
     }).reset_index()
 
@@ -216,10 +234,12 @@ def create_summary_table():
     h5id_stats['填写问卷率'] = (h5id_stats['填写问卷数'] / h5id_stats['有效例子数'] * 100).round(2).map(lambda x: f"{x:.2f}%")
     h5id_stats['导学课到课率'] = (h5id_stats['导学课到课数'] / h5id_stats['有效例子数'] * 100).round(2).map(lambda x: f"{x:.2f}%")
     h5id_stats['导学课完课率'] = (h5id_stats['导学课完课数'] / h5id_stats['有效例子数'] * 100).round(2).map(lambda x: f"{x:.2f}%")
+    h5id_stats['D1到课率'] = (h5id_stats['D1到课数'] / h5id_stats['有效例子数'] * 100).round(2).map(lambda x: f"{x:.2f}%")
+    h5id_stats['D1完课率'] = (h5id_stats['D1完课数'] / h5id_stats['有效例子数'] * 100).round(2).map(lambda x: f"{x:.2f}%")
     h5id_stats['正价课转化率'] = (h5id_stats['正价课转化数'] / h5id_stats['有效例子数'] * 100).round(2).map(lambda x: f"{x:.2f}%")
     h5id_stats['R值'] = ((h5id_stats['正价课转化数'] * 1980 )/ h5id_stats['有效例子数']).round(2)
     # 只保留指定的列
-    selected_columns = ['渠道', 'h5id', '有效例子数', '单向好友数', '填写问卷率','导学课到课率', '导学课完课率', '正价课转化数', '正价课转化率','R值']
+    selected_columns = ['渠道', 'h5id', '有效例子数', '单向好友数', '填写问卷率','导学课到课率', '导学课完课率','D1到课率','D1完课率', '正价课转化数', '正价课转化率','R值']
     h5id_stats = h5id_stats[selected_columns]
 
     # 将 h5id 列转换为字符串类型
@@ -229,3 +249,4 @@ def create_summary_table():
 
 if __name__ == "__main__":
     create_summary_table()
+
